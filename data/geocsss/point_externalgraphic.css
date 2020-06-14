@@ -1,0 +1,8 @@
+@mode 'Flat';
+@styleTitle 'External graphic';
+
+* {
+  mark: url(http://geoserver.org/img/geoserver-logo.png);
+  mark-size: 10;
+  mark-rotation: 90;
+}
