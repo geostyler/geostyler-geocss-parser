@@ -11,6 +11,9 @@ import point_simplepoint_filter from '../data/styles/point_simplepoint_filter';
 import point_externalgraphic from '../data/styles/point_externalgraphic';
 import polygon_graphicFill from '../data/styles/polygon_graphicFill';
 import polygon_transparentpolygon from '../data/styles/polygon_transparentpolygon';
+import raster_autoChannel from '../data/styles/raster_autoChannel';
+import raster_grayChannel from '../data/styles/raster_grayChannel';
+import raster_rgbChannels from '../data/styles/raster_rgbChannels';
 
 it('GeoCSSStyleParser is defined', () => {
   expect(GeoCSSStyleParser).toBeDefined();
@@ -115,6 +118,33 @@ describe('GeoCSSStyleParser implements StyleParser', () => {
         .then((geoStylerStyle: Style) => {
           expect(geoStylerStyle).toBeDefined();
           expect(geoStylerStyle).toEqual(polygon_transparentpolygon);
+        });
+    });
+    it('can read a raster with auto channel', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/raster_autoChannel.css', 'utf8');
+      return styleParser.readStyle(geocss)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(raster_autoChannel);
+        });
+    });
+    it('can read a raster with gray channel', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/raster_grayChannel.css', 'utf8');
+      return styleParser.readStyle(geocss)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(raster_grayChannel);
+        });
+    });
+    it('can read a raster with rgb channels', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/raster_rgbChannels.css', 'utf8');
+      return styleParser.readStyle(geocss)
+        .then((geoStylerStyle: Style) => {
+          expect(geoStylerStyle).toBeDefined();
+          expect(geoStylerStyle).toEqual(raster_rgbChannels);
         });
     });
   });

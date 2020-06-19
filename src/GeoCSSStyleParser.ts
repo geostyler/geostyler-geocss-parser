@@ -14,14 +14,14 @@ import {
   FillSymbolizer,
   TextSymbolizer,
   RasterSymbolizer,
-  // ColorMap,
-  // ChannelSelection,
+  ColorMap,
+  ChannelSelection,
   // ComparisonFilter,
   MarkSymbolizer,
   WellKnownName,
-  // ColorMapEntry,
-  // Channel,
-  // ContrastEnhancement,
+  ColorMapEntry,
+  Channel,
+  ContrastEnhancement,
   // StrMatchesFunctionFilter
 } from 'geostyler-style';
 
@@ -32,6 +32,7 @@ const _isNil = require('lodash/isNil');
 const _isNumber = require('lodash/isNumber');
 const _isEqual = require('lodash/isEqual');
 const _flatten = require('lodash/flatten');
+const _isString = require('lodash/isString');
 
 export class GeoCSSStyleParser implements StyleParser {
   /**
@@ -407,20 +408,171 @@ export class GeoCSSStyleParser implements StyleParser {
     };
   }
 
+  getColorMapFromGeoCSSProperty(properties: any): ColorMap|undefined {
+    const colorMapEntries = properties['raster-color-map']
+      && this.readExpression(properties['raster-color-map']).map((entry: any) => {
+        const color = this.readExpression(entry[1]);
+        const quantity = this.readExpression(entry[2]);
+        const opacity = this.readExpression(entry[3]);
+        const label = this.readExpression(entry[4]);
+        return {
+          color,
+          quantity,
+          label,
+          opacity
+        } as ColorMapEntry;
+      });
+
+    if (!colorMapEntries || colorMapEntries.length === 0) {
+      return undefined;
+    }
+    const type = this.readExpression(properties['raster-color-map-type']);
+    const colorMapEntriesParam = colorMapEntries && { colorMapEntries };
+    return {
+      type: type || 'ramp',
+      ...colorMapEntriesParam
+    } as ColorMap;
+  }
+
+  getContrastEnhancementFromGeoCSSPropertyContrastEnhancement(properties:any, index?:number):ContrastEnhancement|undefined {
+
+    const rasterContrastEnhancement = this.readExpression(properties['raster-contrast-enhancement']);
+    const rasterGamma = this.readExpression(properties['raster-gamma']);
+    if (index !== undefined) {
+
+      const rasterContrastEnhancementArray = _castArray(rasterContrastEnhancement);
+      const gammaValueArray = _castArray(rasterGamma);
+
+      if (!(rasterContrastEnhancementArray.length === 3 || rasterContrastEnhancementArray.length === 1)
+      || !(gammaValueArray.length === 3 || gammaValueArray.length === 1)) {
+        throw new Error(`
+          optional raster-contrast-enhancement and raster-gamma properties
+          should use one or three values separated by space
+          eg:
+
+          raster-channels: 0 1 2; /* rgb */
+          raster-contrast-enhancement: nomalize nomalize nomalize;
+          raster-gamma: 0.5 0.5 0.5;
+
+          /* or */
+
+          raster-channels: 0 1 2; /* rgb */
+          raster-contrast-enhancement: nomalize;
+          raster-gamma: 0.5;
+
+        `);
+      }
+
+      const fisrtEnhancementType = rasterContrastEnhancementArray[0];
+      const fisrtGammaValue = gammaValueArray[0];
+
+      if (fisrtEnhancementType !== undefined && rasterContrastEnhancementArray[index] === undefined) {
+        this.addWarning('Used first value of raster-contrast-enhancement for all rgb channel');
+      }
+      if (fisrtGammaValue !== undefined && gammaValueArray[index] === undefined) {
+        this.addWarning('Used first value of raster-gamma for all rgb channel');
+      }
+
+      const enhancementType = rasterContrastEnhancementArray[index] || fisrtEnhancementType;
+      const gammaValue = !_isNil(gammaValueArray[index])
+        ? gammaValueArray[index]
+        : fisrtGammaValue;
+
+      const enhancementTypeParam = enhancementType && { enhancementType: this.readExpression(enhancementType) };
+      const gammaValueParam = !_isNil(gammaValue) && { gammaValue: this.readExpression(gammaValue) };
+      return {
+        ...enhancementTypeParam,
+        ...gammaValueParam
+      } as ContrastEnhancement;
+    }
+
+    if (_isArray(rasterContrastEnhancement) || _isArray(rasterGamma)) {
+      throw new Error(`
+          optional raster-contrast-enhancement and raster-gamma properties
+          should use one value when used with gray channel
+          eg:
+
+          raster-channels: 0; /* gray */
+          raster-contrast-enhancement: nomalize;
+          raster-gamma: 0.5;
+
+      `);
+    }
+
+    const enhancementType = this.readExpression(rasterContrastEnhancement);
+    const gammaValue = this.readExpression(rasterGamma);
+
+    if (_isNil(enhancementType) && _isNil(gammaValue)) {
+      return undefined;
+    }
+
+    const enhancementTypeParam = enhancementType && { enhancementType };
+    const gammaValueParam = !_isNil(gammaValue) && { gammaValue };
+
+    return {
+      ...enhancementTypeParam,
+        ...gammaValueParam
+    } as ContrastEnhancement;
+  }
+
+  getChannelFromGeoCSSChannel(sourceChannelName:any, properties:any, index?:number): Channel {
+    const contrastEnhancement = this.getContrastEnhancementFromGeoCSSPropertyContrastEnhancement(properties, index);
+    const contrastEnhancementParam = contrastEnhancement && { contrastEnhancement };
+    return {
+      sourceChannelName: sourceChannelName + '',
+      ...contrastEnhancementParam
+    } as Channel;
+  }
+
+  getChannelSelectionFromGeoCSSPropertyChannelSelection(properties: any): ChannelSelection|undefined {
+    const rasterChannels = this.readExpression(properties['raster-channels']);
+    if (rasterChannels === 'auto') {
+      return undefined;
+    }
+
+    if (_isArray(rasterChannels) && rasterChannels.length === 3) {
+      const [red, blue, green] = rasterChannels;
+      const redChannel = this.getChannelFromGeoCSSChannel(red, properties, 0);
+      const greenChannel = this.getChannelFromGeoCSSChannel(blue, properties, 1);
+      const blueChannel = this.getChannelFromGeoCSSChannel(green, properties, 2);
+      return {
+        redChannel,
+        greenChannel,
+        blueChannel
+      } as ChannelSelection;
+    }
+
+    if (_isNumber(rasterChannels) || _isString(rasterChannels)) {
+      const grayChannel = this.getChannelFromGeoCSSChannel(rasterChannels, properties);
+      return {
+        grayChannel
+      } as ChannelSelection;
+    }
+
+    throw new Error(`
+      Cannot parse raster-channels. It does not match the auto, gray or rgb structure
+      eg:
+
+      raster-channels: auto;
+      raster-channels: 0; /* gray */
+      raster-channels: 7 2 4; /* rgb */
+
+    `);
+  }
+
   getRasterSymbolizerFromGeoCSSRule(properties: any): RasterSymbolizer {
-    // TODO: Raster GeoCSS to Style
+
     const kind = 'Raster';
 
-    const opacity = this.readExpression(properties['']);
-    const colorMap = this.readExpression(properties['']); // this.getColorMapFromGeoCSSProperty();
-    const channelSelection = this.readExpression(properties['']); // this.getChannelSelectionFromGeoCSSPropertyChannelSelection();
-    const contrastEnhancement = this.readExpression(properties['']); // this.getContrastEnhancementFromGeoCSSPropertyContrastEnhancement();
+    const opacity = this.readExpression(properties['raster-opacity']);
+    const colorMap = this.getColorMapFromGeoCSSProperty(properties);
+    const channelSelection = this.getChannelSelectionFromGeoCSSPropertyChannelSelection(properties);
+    const contrastEnhancement = !channelSelection && this.getContrastEnhancementFromGeoCSSPropertyContrastEnhancement(properties);
 
     const opacityParam = !_isNil(opacity) && { opacity };
     const colorMapParam = colorMap && { colorMap };
     const channelSelectionParam = channelSelection && { channelSelection };
     const contrastEnhancementParam = contrastEnhancement && { contrastEnhancement };
-
     return {
       kind,
       ...opacityParam,
@@ -438,7 +590,7 @@ export class GeoCSSStyleParser implements StyleParser {
       symbolizers.push('line');
     } else if (properties.fill && properties.fill !== 'none') {
       symbolizers.push('polygon');
-    } else if (properties['raster-channels']) {
+    } else if (properties['raster-channels'] !== undefined) {
       symbolizers.push('raster');
     }
     if (properties.label) { symbolizers.push('text'); }
@@ -464,6 +616,9 @@ export class GeoCSSStyleParser implements StyleParser {
             }
             if (symbolizerType === 'text') {
               return [...acc, this.getTextSymbolizerFromGeoCSSRule(properties)];
+            }
+            if (symbolizerType === 'raster') {
+              return [...acc, this.getRasterSymbolizerFromGeoCSSRule(properties)];
             }
             return [...acc];
           },
