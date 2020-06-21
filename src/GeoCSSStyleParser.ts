@@ -744,7 +744,7 @@ export class GeoCSSStyleParser implements StyleParser {
         // flatten rules using group property to display all symbolizers
         properties: propertiesKeys.reduce((acc:any, key:any) => ({
           ...acc,
-          [key]: props[key]
+          [key]: !_isNil(props[key])
             ? props[key]
             : key[0] === ':'
               ? {} // empty pseudoselector
@@ -821,9 +821,7 @@ export class GeoCSSStyleParser implements StyleParser {
         case 'Fill':
           return this.getGeoCSSPropertiesFromFillSymbolizer(symbolizer);
         case 'Raster':
-          // TODO: Raster Style to GeoCSS
-          // return this.getSldRasterSymbolizerFromRasterSymbolizer(symbolizer);
-          return null;
+          return this.getGeoCSSPropertiesFromRasterSymbolizer(symbolizer);
         default:
           return null;
       }
@@ -1028,6 +1026,110 @@ export class GeoCSSStyleParser implements StyleParser {
     };
   }
 
+  getGeoCSSColorMapFromColorMap(colorMap:ColorMap|undefined):any {
+    if (!colorMap) {
+      return undefined;
+    }
+
+    const rasterColorMap = colorMap.colorMapEntries && colorMap.colorMapEntries.length > 0
+      && colorMap.colorMapEntries
+        .map(({ color, quantity, opacity, label }) =>
+          ['color-map-entry', ['hex', color], quantity, opacity, label].filter((value) => !_isNil(value))
+        )
+        .filter((value) => value.length > 1);
+
+    const rasterColorMapTypeParam = colorMap.type && { 'raster-color-map-type': ['get', colorMap.type] };
+    const rasterColorMapParam = rasterColorMap && rasterColorMap.length > 0 && { 'raster-color-map': ['array', ...rasterColorMap] };
+
+    return {
+      ...rasterColorMapTypeParam,
+      ...rasterColorMapParam
+    }
+  }
+
+  getGeoCSSChannelSelectionFromChannelSelection(channelSelection: ChannelSelection|undefined): any {
+
+    const redChannel = channelSelection && channelSelection['redChannel'];
+    const greenChannel = channelSelection && channelSelection['greenChannel'];
+    const blueChannel = channelSelection && channelSelection['blueChannel'];
+
+    if (redChannel && greenChannel && blueChannel) {
+      const red = redChannel.sourceChannelName;
+      const green = greenChannel.sourceChannelName;
+      const blue = blueChannel.sourceChannelName;
+
+      const {
+        enhancementType: redEnhancementType,
+        gammaValue: redGammaValue
+      } = redChannel.contrastEnhancement;
+      const {
+        enhancementType: greenEnhancementType,
+        gammaValue: greenGammaValue
+      } = greenChannel.contrastEnhancement;
+      const {
+        enhancementType: blueEnhancementType,
+        gammaValue: blueGammaValue
+      } = blueChannel.contrastEnhancement;
+
+      const rasterContrastEnhancementParam = (redEnhancementType && greenEnhancementType && blueEnhancementType)
+        && { 'raster-contrast-enhancement': ['array', ['get', redEnhancementType], ['get', greenEnhancementType], ['get', blueEnhancementType]] };
+
+      const rasterGammaParam = (!_isNil(redGammaValue) && !_isNil(greenGammaValue) && !_isNil(blueGammaValue))
+        && { 'raster-gamma': ['array', redGammaValue, greenGammaValue, blueGammaValue] };
+
+      return {
+        'raster-channels': ['array', parseFloat(red), parseFloat(green), parseFloat(blue)],
+        ...rasterContrastEnhancementParam,
+        ...rasterGammaParam
+      };
+    }
+
+    const grayChannel = channelSelection && channelSelection['grayChannel'];
+
+    if (grayChannel) {
+      const gray = grayChannel.sourceChannelName;
+      const {
+        enhancementType: grayEnhancementType,
+        gammaValue: grayGammaValue
+      } = grayChannel.contrastEnhancement;
+
+      const rasterContrastEnhancementParam = grayEnhancementType && { 'raster-contrast-enhancement': ['get', grayEnhancementType] };
+      const rasterGammaParam = !_isNil(grayGammaValue)
+        && { 'raster-gamma': grayGammaValue };
+
+      return {
+        'raster-channels': parseFloat(gray),
+        ...rasterContrastEnhancementParam,
+        ...rasterGammaParam
+      }
+    }
+
+    return {
+      'raster-channels': ['get', 'auto']
+    };
+  }
+
+  getGeoCSSPropertiesFromRasterSymbolizer(rasterSymbolizer: RasterSymbolizer): any {
+    const rasterOpacityParam = !_isNil(rasterSymbolizer.opacity) && { 'raster-opacity': rasterSymbolizer.opacity };
+    const rasterColorMapParams = this.getGeoCSSColorMapFromColorMap(rasterSymbolizer.colorMap);
+    const rasterChannelsParams = this.getGeoCSSChannelSelectionFromChannelSelection(rasterSymbolizer.channelSelection);
+    const {
+      enhancementType,
+      gammaValue
+    } = rasterSymbolizer && rasterSymbolizer.contrastEnhancement || {};
+    const isAuto = rasterChannelsParams['raster-channels'] && rasterChannelsParams['raster-channels'][1] === 'auto';
+    const rasterContrastEnhancementParam = isAuto && enhancementType && { 'raster-contrast-enhancement': ['get', enhancementType] };
+    const rasterGammaParam = isAuto && !_isNil(gammaValue)
+        && { 'raster-gamma': gammaValue };
+
+    return {
+      ...rasterChannelsParams,
+      ...rasterContrastEnhancementParam,
+      ...rasterGammaParam,
+      ...rasterOpacityParam,
+      ...rasterColorMapParams
+    };
+  }
 }
 
 export default GeoCSSStyleParser;

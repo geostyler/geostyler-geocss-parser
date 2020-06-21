@@ -120,6 +120,7 @@ describe('GeoCSSStyleParser implements StyleParser', () => {
           expect(geoStylerStyle).toEqual(polygon_transparentpolygon);
         });
     });
+
     it('can read a raster with auto channel', () => {
       expect.assertions(2);
       const geocss = fs.readFileSync('./data/geocsss/raster_autoChannel.css', 'utf8');
@@ -129,6 +130,7 @@ describe('GeoCSSStyleParser implements StyleParser', () => {
           expect(geoStylerStyle).toEqual(raster_autoChannel);
         });
     });
+
     it('can read a raster with gray channel', () => {
       expect.assertions(2);
       const geocss = fs.readFileSync('./data/geocsss/raster_grayChannel.css', 'utf8');
@@ -138,6 +140,7 @@ describe('GeoCSSStyleParser implements StyleParser', () => {
           expect(geoStylerStyle).toEqual(raster_grayChannel);
         });
     });
+
     it('can read a raster with rgb channels', () => {
       expect.assertions(2);
       const geocss = fs.readFileSync('./data/geocsss/raster_rgbChannels.css', 'utf8');
@@ -167,6 +170,36 @@ describe('GeoCSSStyleParser implements StyleParser', () => {
       expect.assertions(2);
       const geocss = fs.readFileSync('./data/geocsss/point_simplepoint_filter.css', 'utf8');
       return styleParser.writeStyle(point_simplepoint_filter)
+        .then((geocssString: string) => {
+          expect(geocssString).toBeDefined();
+          expect(geocssString.replace(/\s/g, '')).toEqual(geocss.replace(/\s/g, ''));
+        });
+    });
+
+    it('can write a raster with auto channels', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/raster_autoChannel.css', 'utf8');
+      return styleParser.writeStyle(raster_autoChannel)
+        .then((geocssString: string) => {
+          expect(geocssString).toBeDefined();
+          expect(geocssString.replace(/\s/g, '')).toEqual(geocss.replace(/\s/g, ''));
+        });
+    });
+
+    it('can write a raster with gray channels', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/raster_grayChannel.css', 'utf8');
+      return styleParser.writeStyle(raster_grayChannel)
+        .then((geocssString: string) => {
+          expect(geocssString).toBeDefined();
+          expect(geocssString.replace(/\s/g, '')).toEqual(geocss.replace(/\s/g, ''));
+        });
+    });
+
+    it('can write a raster with rgb channels', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/raster_rgbChannels.css', 'utf8');
+      return styleParser.writeStyle(raster_rgbChannels)
         .then((geocssString: string) => {
           expect(geocssString).toBeDefined();
           expect(geocssString.replace(/\s/g, '')).toEqual(geocss.replace(/\s/g, ''));

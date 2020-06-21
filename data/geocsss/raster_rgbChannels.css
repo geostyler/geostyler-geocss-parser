@@ -1,3 +1,4 @@
+@mode 'Flat';
 @styleTitle 'Raster rgb channels';
 
 /* @title Raster style */
@@ -5,6 +6,7 @@
   raster-channels: 0 1 2; 
   raster-contrast-enhancement: histogram histogram histogram;
   raster-gamma: 0.5 0.5 0.5;
-  raster-color-map: color-map-entry(#00ffff, 64, 0.4, 'label1') color-map-entry(#ff00ff, 256, 0.8, 'label2');
   raster-opacity: 0.5;
+  raster-color-map-type: ramp;
+  raster-color-map: color-map-entry(#00ffff, 64, 0.4, 'label1') color-map-entry(#ff00ff, 256, 0.8, 'label2');
 }
