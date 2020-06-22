@@ -2,7 +2,7 @@
 @styleTitle 'Line with external graphic';
 
 * {
-  stroke: url(http://geoserver.org/img/geoserver-logo.png);
+  stroke: url('http://geoserver.org/img/geoserver-logo.png');
   stroke-rotation: 90;
   stroke-size: 10;
   stroke-width: 3;

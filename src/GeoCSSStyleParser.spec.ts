@@ -156,6 +156,26 @@ describe('GeoCSSStyleParser implements StyleParser', () => {
       expect(styleParser.writeStyle).toBeDefined();
     });
 
+    it('can write a line with label', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/multi_simplelineLabel.css', 'utf8');
+      return styleParser.writeStyle(multi_simplelineLabel)
+        .then((geocssString: string) => {
+          expect(geocssString).toBeDefined();
+          expect(geocssString.replace(/\s/g, '')).toEqual(geocss.replace(/\s/g, ''));
+        });
+    });
+
+    it('can write a point with filter', () => {
+      expect.assertions(2);
+      const geocss = fs.readFileSync('./data/geocsss/point_simplepoint_filter.css', 'utf8');
+      return styleParser.writeStyle(point_simplepoint_filter)
+        .then((geocssString: string) => {
+          expect(geocssString).toBeDefined();
+          expect(geocssString.replace(/\s/g, '')).toEqual(geocss.replace(/\s/g, ''));
+        });
+    });
+
     it('can write a polygon with graphic', () => {
       expect.assertions(2);
       const geocss = fs.readFileSync('./data/geocsss/polygon_graphicFill.css', 'utf8');

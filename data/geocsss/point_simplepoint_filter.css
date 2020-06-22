@@ -10,7 +10,7 @@
 [POPULATION <= 100000]
 [TEST2 = '1' or TEST2 = '2']
 [@sd > 10000][@sd < 20000] {
-  mark: symbol(circle);
+  mark: symbol('circle');
   :mark {
     fill: #FF0000;
     stroke: #000000;

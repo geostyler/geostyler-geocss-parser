@@ -2,7 +2,7 @@
 @styleTitle 'Line with symbol';
 
 * {
-  stroke: symbol(circle);
+  stroke: symbol('circle');
   stroke-width: 3;
   stroke-dasharray: 13 37;
   stroke-linecap: round;

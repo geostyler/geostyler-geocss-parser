@@ -33,6 +33,7 @@ const _isNumber = require('lodash/isNumber');
 const _isEqual = require('lodash/isEqual');
 const _flatten = require('lodash/flatten');
 const _isString = require('lodash/isString');
+const _find = require('lodash/find');
 
 export class GeoCSSStyleParser implements StyleParser {
   /**
@@ -734,18 +735,27 @@ export class GeoCSSStyleParser implements StyleParser {
     };
   }
 
+  private getFisrtValidPesudoselector = (key: string, properties: any): any => {
+    const firstValid = _find(properties, (props: any) => !_isNil(props[key])) || {};
+    return firstValid[key] || {};
+  }
+
   getGeoCSSRulesFromRules(rules: Rule[]): any {
     return _flatten(rules.map((rule: Rule, group) => {
       const title = rule.name;
       const selector = this.getSelectorsFromFilter(rule.filter);
       const titleParam = title && { title };
       const { min: minScale, max: maxScale } = rule.scaleDenominator || {};
+      const hasScales = !!(_isNumber(minScale) || _isNumber(maxScale));
       const minScaleParam = _isNumber(minScale) && { 'min-scale': ['>', ['get', '@sd'], minScale] };
-      const maxScaleParam = _isNumber(minScale) && { 'max-scale': ['<', ['get', '@sd'], maxScale] };
+      const maxScaleParam = _isNumber(maxScale) && { 'max-scale': ['<', ['get', '@sd'], maxScale] };
       const properties = this.getGeoCSSPropertiesFromSymbolizers(rule.symbolizers);
       const propertiesKeys = properties.reduce((acc: any, props: any) => [...acc, ...Object.keys(props)], []);
+
       return properties.map((props: any) => ({
-        selector,
+        selector: hasScales && selector === '*'
+          ? ['any', ['all']]
+          : selector,
         ...titleParam,
         ...minScaleParam,
         ...maxScaleParam,
@@ -756,7 +766,7 @@ export class GeoCSSStyleParser implements StyleParser {
             [key]: !_isNil(props[key])
               ? props[key]
               : key[0] === ':'
-                ? {} // empty pseudoselector
+                ? this.getFisrtValidPesudoselector(key, properties) // take the first array property or empty
                 :  undefined // empty property
           }),
           {}),
@@ -897,8 +907,8 @@ export class GeoCSSStyleParser implements StyleParser {
     const markSize = iconSymbolizer.size;
     const markRotation = iconSymbolizer.rotate;
 
-    const markParam = mark && { mark };
-    const markOpacityParam = prefix === 'mark' && !_isNil(markOpacity) && { 'mark-opacity': markOpacity };
+    const markParam = mark && { [prefix]: mark };
+    const markOpacityParam = prefix === 'mark' && !_isNil(markOpacity) && { [prefix + '-opacity']: markOpacity };
     const markSizeParam = !_isNil(markSize) && { [prefix + '-size']: markSize };
     const markRotationParam = !_isNil(markRotation) && { [prefix + '-rotation']: markRotation };
 
@@ -939,26 +949,26 @@ export class GeoCSSStyleParser implements StyleParser {
     const haloRadius = textSymbolizer.haloWidth;
     const haloColor = textSymbolizer.haloColor && ['hex', textSymbolizer.haloColor];
 
-    const labelParam = label && { label };
-    const fontFamilyParam = fontFamily && { 'font-family': fontFamily };
+    const labelParam = label && { label: ['text', ...label] };
+    const fontFamilyParam = fontFamily && { 'font-family': ['array', ...fontFamily] };
     const fontFillParam = fontFill && { 'font-fill': fontFill };
     const fontSizeParam = !_isNil(fontSize) && { 'font-size': fontSize };
-    const fontStyleParam = fontStyle && { 'font-style': fontStyle };
-    const fontWeightParam = fontWeight && { 'font-weight': fontWeight };
+    const fontStyleParam = fontStyle && { 'font-style': ['get', fontStyle] };
+    const fontWeightParam = fontWeight && { 'font-weight': ['get', fontWeight] };
     const labelOffsetParam = labelOffset && { 'label-offset': labelOffset };
     const labelRotationParam = !_isNil(labelRotation) && { 'label-rotation': labelRotation };
     const haloRadiusParam = !_isNil(haloRadius) && { 'halo-radius': haloRadius };
-    const haloColorParam = haloColor && { 'halo-radius': haloColor };
+    const haloColorParam = haloColor && { 'halo-color': haloColor };
 
     return {
       ...labelParam,
+      ...labelOffsetParam,
+      ...labelRotationParam,
       ...fontFamilyParam,
       ...fontFillParam,
       ...fontSizeParam,
       ...fontStyleParam,
       ...fontWeightParam,
-      ...labelOffsetParam,
-      ...labelRotationParam,
       ...haloRadiusParam,
       ...haloColorParam
     };
