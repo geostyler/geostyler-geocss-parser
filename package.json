@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/geostyler/geostyler-geocss-parser#readme",
   "dependencies": {
-    "flat-geo-css": "^1.0.4",
+    "flat-geo-css": "^1.0.5",
     "geostyler-style": "^2.0.0",
     "lodash": "^4.17.15"
   },
