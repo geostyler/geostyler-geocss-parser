@@ -1,0 +1,11 @@
+@mode 'Flat';
+@styleTitle 'Line with offset';
+
+* {
+  stroke: #000000;
+  stroke-width: 3;
+  stroke-dasharray: 13 37;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+  stroke-offset: 3;
+}

@@ -1,0 +1,21 @@
+@mode 'Flat';
+@styleTitle 'Simple Point Filter';
+
+/* @title Small populated New Yorks */
+[NAME = 'New York']
+[TEST_BOOL = true]
+[TEST is null]
+[TEST2 like '*York*']
+[TEST1 like '*New*']
+[POPULATION <= 100000]
+[TEST2 = '1' or TEST2 = '2']
+[@sd > 10000][@sd < 20000] {
+  mark: symbol('circle');
+  :mark {
+    fill: #FF0000;
+    stroke: #000000;
+    stroke-width: 2;
+    size: 6;
+  };
+}
+

@@ -1,0 +1,12 @@
+@mode 'Flat';
+@styleTitle 'Polygon Graphic Fill';
+
+* {
+  stroke: #FFFFFF;
+  stroke-width: 2;
+  stroke-dasharray: 1 0;
+  fill: symbol('circle');
+  :fill {
+    fill: #FF0000;
+  };
+}
