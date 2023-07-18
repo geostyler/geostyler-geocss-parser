@@ -1,0 +1,12 @@
+@mode 'Flat';
+@styleTitle 'Line with external graphic';
+
+* {
+  stroke: url('http://geoserver.org/img/geoserver-logo.png');
+  stroke-rotation: 90;
+  stroke-size: 10;
+  stroke-width: 3;
+  stroke-dasharray: 13 37;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+}

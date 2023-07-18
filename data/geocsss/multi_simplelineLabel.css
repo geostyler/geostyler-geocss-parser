@@ -1,0 +1,15 @@
+@mode 'Flat';
+@styleTitle 'Simple line with label';
+
+* {
+  stroke: #000000;
+  stroke-width: 3;
+  stroke-dasharray: 13 37;
+  label: [name];
+  label-offset: 0 5;
+  font-family: 'Arial';
+  font-fill: #000000;
+  font-size: 12;
+  font-style: normal;
+  font-weight: bold;
+}

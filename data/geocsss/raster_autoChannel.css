@@ -1,0 +1,12 @@
+@mode 'Flat';
+@styleTitle 'Raster auto channel';
+
+/* @title Raster style */
+* {
+  raster-channels: auto; 
+  raster-contrast-enhancement: normalize;
+  raster-gamma: 0.5;
+  raster-opacity: 0.5;
+  raster-color-map-type: intervals;
+  raster-color-map: color-map-entry(#00ffff, 64, 0.4, 'label1') color-map-entry(#ff00ff, 256, 0.8, 'label2');
+}

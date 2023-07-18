@@ -1,0 +1,65 @@
+{
+  "name": "geostyler-geocss-parser",
+  "version": "1.0.0",
+  "description": "GeoStyler Style Parser implementation for GeoCSS",
+  "main": "build/dist/GeoCSSStyleParser.js",
+  "types": "build/dist/GeoCSSStyleParser.d.ts",
+  "files": [
+    "build",
+    "browser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geostyler/geostyler-geocss-parser.git"
+  },
+  "keywords": [
+    "geostyler",
+    "parser",
+    "style",
+    "geocss"
+  ],
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/geostyler/geostyler-geocss-parser/issues"
+  },
+  "homepage": "https://github.com/geostyler/geostyler-geocss-parser#readme",
+  "dependencies": {
+    "flat-geo-css": "^1.0.5",
+    "geostyler-style": "^2.0.0",
+    "lodash": "^4.17.15"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && npm run build:browser",
+    "build:browser": "webpack --config browser-build.config.js",
+    "start:dev": "webpack --config dev-build.config.js --watch",
+    "prebuild": "npm run test",
+    "pretest": "npm run lint",
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "lint": "tslint --project tsconfig.json --config tslint.json && tsc --noEmit --project tsconfig.json",
+    "release": "np --no-yarn && git push https://github.com/geostyler/geostyler-geocss-parser.git master --tags"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.18",
+    "@types/lodash": "^4.14.138",
+    "@types/node": "^12.7.3",
+    "@types/xml2js": "^0.4.4",
+    "babel-jest": "^24.9.0",
+    "coveralls": "^3.0.6",
+    "jest": "^24.9.0",
+    "np": "^5.0.3",
+    "ts-loader": "^6.0.4",
+    "tslint": "^5.19.0",
+    "typescript": "^3.6.2",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7"
+  }
+}
